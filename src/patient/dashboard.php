@@ -10,7 +10,7 @@ include('../../templates/header.php');
 // Obtener citas del paciente
 $paciente_id = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
-    SELECT c.fecha, c.hora, tc.nombre AS tipo_cita, u.nombre_completo AS doctor
+    SELECT c.id, c.fecha, c.hora, tc.nombre AS tipo_cita, u.nombre_completo AS doctor
     FROM citas c
     JOIN tipos_citas tc ON c.tipo_cita_id = tc.id
     JOIN usuarios u ON c.doctor_id = u.id
@@ -33,6 +33,7 @@ $citas = $stmt->fetchAll();
                 <th>Hora</th>
                 <th>Tipo de Cita</th>
                 <th>Doctor</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -42,6 +43,12 @@ $citas = $stmt->fetchAll();
                     <td><?= $cita['hora'] ?></td>
                     <td><?= $cita['tipo_cita'] ?></td>
                     <td><?= $cita['doctor'] ?></td>
+                    <td>
+                        <form action="cancel_appointment.php" method="post" style="display:inline;">
+                            <input type="hidden" name="cita_id" value="<?= $cita['id'] ?>">
+                            <button type="submit" onclick="return confirm('¿Estás seguro de que quieres cancelar esta cita?');">Cancelar</button>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
