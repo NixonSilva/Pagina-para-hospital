@@ -7,10 +7,15 @@ if (!isset($_SESSION['rol_id']) || $_SESSION['rol_id'] != 2) {
 include('../../config/db.php');
 include('../../templates/header.php');
 
-// Obtener citas del paciente
+// Obtener información del paciente
 $paciente_id = $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT nombre_completo, tipo_documento, numero_documento FROM usuarios WHERE id = ?");
+$stmt->execute([$paciente_id]);
+$paciente = $stmt->fetch();
+
+// Obtener historial clínico
 $stmt = $pdo->prepare("
-    SELECT c.id, c.fecha, c.hora, tc.nombre AS tipo_cita, u.nombre_completo AS doctor
+    SELECT c.fecha, c.hora, tc.nombre AS tipo_cita, u.nombre_completo AS doctor
     FROM citas c
     JOIN tipos_citas tc ON c.tipo_cita_id = tc.id
     JOIN usuarios u ON c.doctor_id = u.id
@@ -21,10 +26,13 @@ $stmt->execute([$paciente_id]);
 $citas = $stmt->fetchAll();
 ?>
 
-<h1>Bienvenido, Paciente</h1>
-<p>Este es tu dashboard.</p>
-<a href="schedule_appointment.php">Agendar Cita</a>
-<h2>Tus Citas</h2>
+<h1>Historial Clínico</h1>
+<h2>Información del Paciente</h2>
+<p><strong>Nombre Completo:</strong> <?= $paciente['nombre_completo'] ?></p>
+<p><strong>Tipo de Documento:</strong> <?= $paciente['tipo_documento'] ?></p>
+<p><strong>Número de Documento:</strong> <?= $paciente['numero_documento'] ?></p>
+
+<h2>Citas Asistidas</h2>
 <?php if (count($citas) > 0): ?>
     <table>
         <thead>
@@ -33,7 +41,6 @@ $citas = $stmt->fetchAll();
                 <th>Hora</th>
                 <th>Tipo de Cita</th>
                 <th>Doctor</th>
-                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -43,19 +50,13 @@ $citas = $stmt->fetchAll();
                     <td><?= $cita['hora'] ?></td>
                     <td><?= $cita['tipo_cita'] ?></td>
                     <td><?= $cita['doctor'] ?></td>
-                    <td>
-                        <form action="cancel_appointment.php" method="post" style="display:inline;">
-                            <input type="hidden" name="cita_id" value="<?= $cita['id'] ?>">
-                            <button type="submit" onclick="return confirm('¿Estás seguro de que quieres cancelar esta cita?');">Cancelar</button>
-                        </form>
-                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 <?php else: ?>
-    <p>No tienes citas agendadas.</p>
+    <p>No tienes citas asistidas.</p>
 <?php endif; ?>
-<p><a href="../patient/clinical_history.php">Ver historial clinico</a></p>
-<a href="../logout.php">Cerrar Sesión</a>
+<p><a href="dashboard.php">Volver al Dashboard</a></p>
+<p><a href="../logout.php">Cerrar Sesión</a></p>
 <?php include('../../templates/footer.php'); ?>
