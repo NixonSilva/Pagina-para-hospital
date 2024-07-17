@@ -57,6 +57,7 @@ $citas = $stmt->fetchAll();
 <?php else: ?>
     <p>No tienes citas asistidas.</p>
 <?php endif; ?>
+<p><a href="download_history.php">Descargar Historial Clínico (PDF)</a></p>
 <p><a href="dashboard.php">Volver al Dashboard</a></p>
 <p><a href="../logout.php">Cerrar Sesión</a></p>
 <?php include('../../templates/footer.php'); ?>
