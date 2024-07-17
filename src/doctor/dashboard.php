@@ -4,9 +4,20 @@ if (!isset($_SESSION['rol_id']) || $_SESSION['rol_id'] != 3) {
     header("Location: ../login.php");
     exit();
 }
-include('../../templates/header.php');
 ?>
-<h1>Bienvenido, Doctor</h1>
-<p>Este es tu dashboard.</p>
-<a href="../logout.php">Cerrar Sesión</a>
-<?php include('../../templates/footer.php'); ?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Doctor</title>
+    <link rel="stylesheet" href="../../public/styles.css">
+</head>
+<body>
+    <h1>Dashboard Doctor</h1>
+    <ul>
+        <li><a href="view_appointments.php">Ver Citas Agendadas</a></li>
+        <li><a href="../../public/index.php">Volver al inicio</a></li>
+    </ul>
+</body>
+</html>
