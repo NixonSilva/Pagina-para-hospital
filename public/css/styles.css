@@ -1,0 +1,28 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    background: url('../img/incio.jpeg') no-repeat center center fixed; /* Cambia la ruta de la imagen */
+    background-size: cover;
+}
+
+.container {
+    max-width: 400px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-text {
+    text-align: center;
+    margin-top: 10px;
+    color: #555;
+}
