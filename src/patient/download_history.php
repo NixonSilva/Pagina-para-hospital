@@ -6,23 +6,25 @@ if (!isset($_SESSION['rol_id']) || $_SESSION['rol_id'] != 2) {
 }
 
 require_once('../../config/db.php');
-require_once('../../vendor/autoload.php'); // O la ruta correcta si no usas Composer
+require_once('../../vendor/autoload.php');
 
 // Obtener información del paciente
 $paciente_id = $_SESSION['user_id'];
 $stmt = $pdo->prepare("SELECT nombre_completo, tipo_documento, numero_documento FROM usuarios WHERE id = ?");
 $stmt->execute([$paciente_id]);
-$paciente = $stmt->fetch();
+$paciente = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Obtener historial clínico
 $stmt = $pdo->prepare("
-    SELECT fecha, diagnostico, tratamiento, observaciones 
-    FROM historial_clinico 
-    WHERE paciente_id = ?
-    ORDER BY fecha
+    SELECT hc.*, m.motivo, d.nombre_completo AS doctor_nombre, ec.nombre AS estado
+    FROM historial_clinico hc
+    JOIN motivos_consulta m ON hc.motivo = m.id
+    JOIN usuarios d ON hc.doctor_id = d.id
+    JOIN estado_consulta ec ON hc.estado_id = ec.id
+    WHERE hc.paciente_id = ?
 ");
 $stmt->execute([$paciente_id]);
-$historial = $stmt->fetchAll();
+$historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener citas del paciente
 $stmt = $pdo->prepare("
@@ -34,37 +36,48 @@ $stmt = $pdo->prepare("
     ORDER BY c.fecha, c.hora
 ");
 $stmt->execute([$paciente_id]);
-$citas = $stmt->fetchAll();
+$citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+class MYPDF extends TCPDF {
+    public function Header() {
+        $this->SetFont('helvetica', 'B', 12);
+        $this->Cell(0, 15, 'Historial Clínico', 0, false, 'C', 0, '', 0, false, 'M', 'M');
+    }
+}
 
 // Crear PDF
-$pdf = new TCPDF();
+$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Hospital');
 $pdf->SetTitle('Historial Clínico');
-$pdf->SetHeaderData('', 0, 'Historial Clínico', "Paciente: " . $paciente['nombre_completo']);
+$pdf->SetHeaderData('', 0, 'Historial Clínico', '');
 $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
 $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
 $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-$pdf->SetMargins(10, 30, 10);
-$pdf->SetHeaderMargin(10);
-$pdf->SetFooterMargin(10);
-$pdf->SetAutoPageBreak(TRUE, 25);
+$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+$pdf->SetFont('helvetica', '', 10);
 $pdf->AddPage();
 
 // Contenido del PDF
 $html = '
 <h2>Información del Paciente</h2>
-<p><strong>Nombre Completo:</strong> ' . $paciente['nombre_completo'] . '</p>
-<p><strong>Tipo de Documento:</strong> ' . $paciente['tipo_documento'] . '</p>
-<p><strong>Número de Documento:</strong> ' . $paciente['numero_documento'] . '</p>
+<p><strong>Nombre Completo:</strong> ' . htmlspecialchars($paciente['nombre_completo']) . '</p>
+<p><strong>Tipo de Documento:</strong> ' . htmlspecialchars($paciente['tipo_documento']) . '</p>
+<p><strong>Número de Documento:</strong> ' . htmlspecialchars($paciente['numero_documento']) . '</p>
 <h2>Historial Clínico</h2>
 <table border="1" cellpadding="5">
     <thead>
         <tr>
             <th>Fecha</th>
-            <th>Diagnóstico</th>
+            <th>Motivo</th>
             <th>Tratamiento</th>
             <th>Observaciones</th>
+            <th>Doctor</th>
+            <th>Estado</th>
         </tr>
     </thead>
     <tbody>';
@@ -72,10 +85,12 @@ $html = '
 foreach ($historial as $registro) {
     $html .= '
         <tr>
-            <td>' . $registro['fecha'] . '</td>
-            <td>' . $registro['diagnostico'] . '</td>
-            <td>' . $registro['tratamiento'] . '</td>
-            <td>' . $registro['observaciones'] . '</td>
+            <td>' . htmlspecialchars($registro['fecha']) . '</td>
+            <td>' . htmlspecialchars($registro['motivo']) . '</td>
+            <td>' . htmlspecialchars($registro['tratamiento']) . '</td>
+            <td>' . htmlspecialchars($registro['observaciones']) . '</td>
+            <td>' . htmlspecialchars($registro['doctor_nombre']) . '</td>
+            <td>' . htmlspecialchars($registro['estado']) . '</td>
         </tr>';
 }
 
@@ -100,11 +115,11 @@ $html .= '
 foreach ($citas as $cita) {
     $html .= '
         <tr>
-            <td>' . $cita['fecha'] . '</td>
-            <td>' . $cita['hora'] . '</td>
-            <td>' . $cita['tipo_cita'] . '</td>
-            <td>' . $cita['doctor'] . '</td>
-            <td>' . $cita['estado'] . '</td>
+            <td>' . htmlspecialchars($cita['fecha']) . '</td>
+            <td>' . htmlspecialchars($cita['hora']) . '</td>
+            <td>' . htmlspecialchars($cita['tipo_cita']) . '</td>
+            <td>' . htmlspecialchars($cita['doctor']) . '</td>
+            <td>' . htmlspecialchars($cita['estado']) . '</td>
         </tr>';
 }
 
