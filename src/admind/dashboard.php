@@ -4,10 +4,13 @@ if (!isset($_SESSION['rol_id']) || $_SESSION['rol_id'] != 1) {
     header("Location: ../login.php");
     exit();
 }
+
 require '../includes/funciones.php';
 
 include('../../templates/header.php');
+
 $usuarios = obtenerUsuarios();
+$citas = obtenerTodasLasCitas();
 ?>
 <h1>Bienvenido, Administrador</h1>
 <p>Este es tu dashboard.</p>
@@ -41,5 +44,31 @@ $usuarios = obtenerUsuarios();
     </div>        
     </div>
     <br>
+
+    <main class="mt-4">
+            <section>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Paciente</th>
+                            <th>Fecha</th>
+                            <th>Tipo de Cita</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($citas as $cita) : ?>
+                            <tr>
+                                <td><?php echo $cita['id']; ?></td>
+                                <td><?php echo $cita['paciente']; ?></td>
+                                <td><?php echo $cita['fecha']; ?></td>
+                                <td><?php echo $cita['tipos_citas']; ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                </div>
+            </section>
+        </main>
 <a href="../logout.php">Cerrar Sesión</a>
 <?php include('../../templates/footer.php'); ?>

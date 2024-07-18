@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt = $pdo->prepare("
-        INSERT INTO historial_clinico (paciente_id, doctor_id, cita_id, motivo, observaciones, tratamiento, medicinas, fecha_cita)
+        INSERT INTO historial_clinico (paciente_id, doctor_id, cita_id, motivo, observaciones, tratamiento, medicinas, fecha)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ");
     $stmt->execute([
